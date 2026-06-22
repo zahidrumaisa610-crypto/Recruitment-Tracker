@@ -1,0 +1,424 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>LCI Recruitment Tracker — Sales & Marketing</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/recharts/2.12.7/Recharts.min.js"></script>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'Segoe UI', system-ui, sans-serif; background: #F1F5F9; min-height: 100vh; }
+  table { border-collapse: collapse; width: 100%; font-size: 12px; }
+  th { padding: 9px 14px; text-align: left; font-size: 10px; font-weight: 700; color: #6B7280; text-transform: uppercase; letter-spacing: 0.05em; border-bottom: 2px solid #E5E7EB; white-space: nowrap; background: #F9FAFB; }
+  td { padding: 11px 14px; border-bottom: 1px solid #F3F4F6; }
+  tr:nth-child(even) td { background: #FAFAFA; }
+  .badge { font-size: 10px; font-weight: 700; padding: 3px 9px; border-radius: 99px; white-space: nowrap; }
+  .tab-btn { padding: 7px 16px; border-radius: 8px; border: none; cursor: pointer; font-size: 12px; font-weight: 700; transition: all 0.2s; }
+  .tab-btn.active { background: #fff; color: #1E3A5F; }
+  .tab-btn:not(.active) { background: rgba(255,255,255,0.15); color: #fff; }
+  .grade-btn { padding: 5px 12px; border-radius: 7px; border: none; cursor: pointer; font-size: 11px; font-weight: 700; }
+  .grade-btn.active { background: #6366F1; color: #fff; }
+  .grade-btn:not(.active) { background: #F3F4F6; color: #374151; }
+  .card { background: #fff; border-radius: 14px; padding: 20px 22px; box-shadow: 0 1px 4px rgba(0,0,0,0.07); }
+  .card-title { font-size: 11px; font-weight: 800; color: #374151; text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 16px; }
+  .kpi-grid { display: flex; gap: 14px; flex-wrap: wrap; margin-bottom: 20px; }
+  .kpi { background: #fff; border-radius: 14px; padding: 18px 20px; flex: 1; min-width: 130px; box-shadow: 0 1px 4px rgba(0,0,0,0.07); }
+  .kpi-label { font-size: 11px; font-weight: 700; color: #6B7280; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 6px; }
+  .kpi-value { font-size: 36px; font-weight: 900; line-height: 1; }
+  .kpi-sub { font-size: 11px; color: #9CA3AF; margin-top: 5px; }
+  .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+  .grid-3 { display: grid; grid-template-columns: 1.2fr 1fr 1fr; gap: 16px; }
+  .alert { background: #FEF3C7; border: 1.5px solid #FCD34D; border-radius: 12px; padding: 12px 18px; display: flex; gap: 10px; margin-bottom: 20px; font-size: 12px; color: #78350F; }
+  .insight { padding: 10px 14px; background: #FEF3C7; border-radius: 10px; font-size: 12px; color: #78350F; margin-top: 12px; }
+  .insight-green { background: #F0FDF4; color: #166534; }
+  .stat-row { display: flex; justify-content: space-between; align-items: center; padding: 10px 14px; background: #F9FAFB; border-radius: 10px; margin-bottom: 10px; }
+  .bar-wrap { display: flex; align-items: center; gap: 10px; }
+  .bar-track { flex: 1; height: 8px; background: #F3F4F6; border-radius: 99px; }
+  .bar-fill { height: 100%; border-radius: 99px; }
+  /* Print/Save styles */
+  @media print {
+    body { background: #fff; }
+    .no-print { display: none !important; }
+  }
+</style>
+</head>
+<body>
+
+<!-- HEADER -->
+<div style="background: linear-gradient(135deg,#1E3A5F 0%,#2563EB 100%); padding: 20px 28px;">
+  <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:12px; margin-bottom:18px;">
+    <div>
+      <div style="color:#93C5FD;font-size:11px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;margin-bottom:4px;">Lucky Core Industries</div>
+      <div style="color:#fff;font-size:20px;font-weight:900;letter-spacing:-.02em;">Recruitment Tracker — Sales & Marketing</div>
+      <div style="color:#93C5FD;font-size:12px;margin-top:3px;">Standalone HTML · Open in Microsoft Edge</div>
+    </div>
+    <div style="background:rgba(255,255,255,.1);border-radius:10px;padding:8px 16px;color:#fff;font-size:12px;text-align:right;">
+      <div style="color:#93C5FD;font-size:10px;text-transform:uppercase;letter-spacing:.05em;">Last Updated</div>
+      <div style="font-weight:700;">June 22, 2026</div>
+    </div>
+  </div>
+  <!-- TABS -->
+  <div style="display:flex;gap:6px;">
+    <button class="tab-btn active" onclick="switchTab('overview',this)">Overview</button>
+    <button class="tab-btn" onclick="switchTab('hiring',this)">Avg Days to Hire</button>
+    <button class="tab-btn" onclick="switchTab('trend',this)">Monthly Trend</button>
+  </div>
+</div>
+
+<!-- MAIN CONTENT -->
+<div style="padding:24px 28px;" id="main-content">
+
+  <!-- KPIs -->
+  <div class="kpi-grid">
+    <div class="kpi" style="border-left:5px solid #6366F1;"><div class="kpi-label">Total Positions</div><div class="kpi-value" style="color:#6366F1;">10</div><div class="kpi-sub">All tracked roles</div></div>
+    <div class="kpi" style="border-left:5px solid #F59E0B;"><div class="kpi-label">Currently Open</div><div class="kpi-value" style="color:#F59E0B;">6</div><div class="kpi-sub">Active vacancies</div></div>
+    <div class="kpi" style="border-left:5px solid #8B5CF6;"><div class="kpi-label">At Interview</div><div class="kpi-value" style="color:#8B5CF6;">4</div><div class="kpi-sub">Candidates in process</div></div>
+    <div class="kpi" style="border-left:5px solid #EF4444;"><div class="kpi-label">Needs Candidate</div><div class="kpi-value" style="color:#EF4444;">3</div><div class="kpi-sub">No shortlist yet</div></div>
+    <div class="kpi" style="border-left:5px solid #10B981;"><div class="kpi-label">Avg Days to Hire</div><div class="kpi-value" style="color:#10B981;">78d</div><div class="kpi-sub">Across filled roles</div></div>
+  </div>
+
+  <!-- ALERT -->
+  <div class="alert">
+    <span style="font-size:16px;">⚠️</span>
+    <div><b>PM – Oncology:</b> Salary out of range, HR to revert. &nbsp;|&nbsp; <b>NSM – Mucain:</b> Next interview to be aligned with COO via Corp. TA.</div>
+  </div>
+
+  <!-- ===== OVERVIEW TAB ===== -->
+  <div id="tab-overview">
+    <div class="grid-3" style="margin-bottom:16px;">
+
+      <!-- Pipeline -->
+      <div class="card">
+        <div class="card-title">Recruitment Pipeline</div>
+        <div style="display:flex;height:28px;border-radius:8px;overflow:hidden;margin-bottom:14px;">
+          <div style="flex:2;background:#F59E0B;display:flex;align-items:center;justify-content:center;color:#fff;font-size:11px;font-weight:800;">2</div>
+          <div style="flex:1;background:#3B82F6;display:flex;align-items:center;justify-content:center;color:#fff;font-size:11px;font-weight:800;">1</div>
+          <div style="flex:4;background:#8B5CF6;display:flex;align-items:center;justify-content:center;color:#fff;font-size:11px;font-weight:800;">4</div>
+          <div style="flex:3;background:#10B981;display:flex;align-items:center;justify-content:center;color:#fff;font-size:11px;font-weight:800;">3</div>
+        </div>
+        <div style="display:flex;flex-direction:column;gap:8px;">
+          <div style="display:flex;justify-content:space-between;align-items:center;"><span style="font-size:12px;color:#374151;display:flex;align-items:center;gap:7px;"><span style="width:9px;height:9px;border-radius:3px;background:#F59E0B;display:inline-block;"></span>Shortlisting</span><span style="font-size:12px;font-weight:800;">2</span></div>
+          <div style="display:flex;justify-content:space-between;align-items:center;"><span style="font-size:12px;color:#374151;display:flex;align-items:center;gap:7px;"><span style="width:9px;height:9px;border-radius:3px;background:#3B82F6;display:inline-block;"></span>Candidate Identified</span><span style="font-size:12px;font-weight:800;">1</span></div>
+          <div style="display:flex;justify-content:space-between;align-items:center;"><span style="font-size:12px;color:#374151;display:flex;align-items:center;gap:7px;"><span style="width:9px;height:9px;border-radius:3px;background:#8B5CF6;display:inline-block;"></span>Interview</span><span style="font-size:12px;font-weight:800;">4</span></div>
+          <div style="display:flex;justify-content:space-between;align-items:center;"><span style="font-size:12px;color:#374151;display:flex;align-items:center;gap:7px;"><span style="width:9px;height:9px;border-radius:3px;background:#10B981;display:inline-block;"></span>Offer Extended</span><span style="font-size:12px;font-weight:800;">3</span></div>
+        </div>
+      </div>
+
+      <!-- Open by Portfolio -->
+      <div class="card">
+        <div class="card-title">Open Roles by Portfolio</div>
+        <div id="portfolio-bars"></div>
+      </div>
+
+      <!-- Grade Donut (CSS-only) -->
+      <div class="card">
+        <div class="card-title">By Grade Band</div>
+        <div style="display:flex;flex-direction:column;gap:10px;margin-top:8px;">
+          <div style="display:flex;justify-content:space-between;align-items:center;">
+            <span style="font-size:12px;color:#374151;display:flex;align-items:center;gap:7px;"><span style="width:12px;height:12px;border-radius:3px;background:#6366F1;display:inline-block;"></span>Grade 33/34</span><span style="font-size:14px;font-weight:900;color:#6366F1;">5</span>
+          </div>
+          <div style="height:10px;background:#F3F4F6;border-radius:99px;"><div style="width:50%;height:100%;background:#6366F1;border-radius:99px;"></div></div>
+          <div style="display:flex;justify-content:space-between;align-items:center;">
+            <span style="font-size:12px;color:#374151;display:flex;align-items:center;gap:7px;"><span style="width:12px;height:12px;border-radius:3px;background:#F59E0B;display:inline-block;"></span>Grade 35</span><span style="font-size:14px;font-weight:900;color:#F59E0B;">3</span>
+          </div>
+          <div style="height:10px;background:#F3F4F6;border-radius:99px;"><div style="width:30%;height:100%;background:#F59E0B;border-radius:99px;"></div></div>
+          <div style="display:flex;justify-content:space-between;align-items:center;">
+            <span style="font-size:12px;color:#374151;display:flex;align-items:center;gap:7px;"><span style="width:12px;height:12px;border-radius:3px;background:#EC4899;display:inline-block;"></span>Grade 35TR</span><span style="font-size:14px;font-weight:900;color:#EC4899;">1</span>
+          </div>
+          <div style="height:10px;background:#F3F4F6;border-radius:99px;"><div style="width:10%;height:100%;background:#EC4899;border-radius:99px;"></div></div>
+          <div style="display:flex;justify-content:space-between;align-items:center;">
+            <span style="font-size:12px;color:#374151;display:flex;align-items:center;gap:7px;"><span style="width:12px;height:12px;border-radius:3px;background:#EF4444;display:inline-block;"></span>Grade 36</span><span style="font-size:14px;font-weight:900;color:#EF4444;">1</span>
+          </div>
+          <div style="height:10px;background:#F3F4F6;border-radius:99px;"><div style="width:10%;height:100%;background:#EF4444;border-radius:99px;"></div></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- POSITIONS TABLE -->
+    <div class="card" style="padding:0;overflow:hidden;">
+      <div style="padding:14px 20px;border-bottom:1px solid #E5E7EB;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px;">
+        <div style="font-size:13px;font-weight:800;color:#111827;">All Positions</div>
+        <div style="display:flex;gap:6px;">
+          <button class="grade-btn active" onclick="filterGrade('All',this)">All</button>
+          <button class="grade-btn" onclick="filterGrade('33/34',this)">33/34</button>
+          <button class="grade-btn" onclick="filterGrade('35',this)">35</button>
+          <button class="grade-btn" onclick="filterGrade('35TR',this)">35TR</button>
+          <button class="grade-btn" onclick="filterGrade('36',this)">36</button>
+        </div>
+      </div>
+      <div style="overflow-x:auto;">
+        <table id="positions-table">
+          <thead>
+            <tr>
+              <th>Position</th><th>Grade</th><th>Portfolio</th><th>Location</th><th>Candidate</th><th>Stage</th><th>Open Date</th><th>Days Open</th>
+            </tr>
+          </thead>
+          <tbody id="positions-tbody"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== HIRING TAB ===== -->
+  <div id="tab-hiring" style="display:none;">
+    <div style="margin-bottom:16px;" class="card">
+      <div class="card-title">Avg Days to Hire by Role</div>
+      <div style="margin-bottom:12px;display:flex;gap:16px;flex-wrap:wrap;">
+        <span style="font-size:11px;color:#6B7280;display:flex;align-items:center;gap:6px;"><span style="width:10px;height:10px;border-radius:3px;background:#10B981;display:inline-block;"></span>&lt; 60 days — <b>Fast</b></span>
+        <span style="font-size:11px;color:#6B7280;display:flex;align-items:center;gap:6px;"><span style="width:10px;height:10px;border-radius:3px;background:#F59E0B;display:inline-block;"></span>60–80 days — <b>Average</b></span>
+        <span style="font-size:11px;color:#6B7280;display:flex;align-items:center;gap:6px;"><span style="width:10px;height:10px;border-radius:3px;background:#EF4444;display:inline-block;"></span>&gt; 80 days — <b>Slow</b></span>
+      </div>
+      <div id="hiring-bars" style="display:flex;flex-direction:column;gap:14px;"></div>
+    </div>
+
+    <div class="grid-2">
+      <div class="card">
+        <div class="card-title">Days to Hire — Detail</div>
+        <div id="detail-bars" style="display:flex;flex-direction:column;gap:14px;"></div>
+      </div>
+      <div class="card">
+        <div class="card-title">Hiring Speed Summary</div>
+        <div class="stat-row" style="border-left:4px solid #6366F1;"><div><div style="font-size:12px;font-weight:700;color:#374151;">Overall Average</div><div style="font-size:11px;color:#9CA3AF;">Across all filled roles</div></div><div style="font-size:22px;font-weight:900;color:#6366F1;">78 days</div></div>
+        <div class="stat-row" style="border-left:4px solid #10B981;"><div><div style="font-size:12px;font-weight:700;color:#374151;">Fastest Hire</div><div style="font-size:11px;color:#9CA3AF;">Product Manager – Oncology</div></div><div style="font-size:22px;font-weight:900;color:#10B981;">54 days</div></div>
+        <div class="stat-row" style="border-left:4px solid #EF4444;"><div><div style="font-size:12px;font-weight:700;color:#374151;">Slowest Hire</div><div style="font-size:11px;color:#9CA3AF;">Business Head – Cardio</div></div><div style="font-size:22px;font-weight:900;color:#EF4444;">97 days</div></div>
+        <div class="stat-row" style="border-left:4px solid #F59E0B;"><div><div style="font-size:12px;font-weight:700;color:#374151;">Grade 33/34 Avg</div><div style="font-size:11px;color:#9CA3AF;">Junior-mid level roles</div></div><div style="font-size:22px;font-weight:900;color:#F59E0B;">68 days</div></div>
+        <div class="stat-row" style="border-left:4px solid #8B5CF6;"><div><div style="font-size:12px;font-weight:700;color:#374151;">Grade 35+ Avg</div><div style="font-size:11px;color:#9CA3AF;">Senior level roles</div></div><div style="font-size:22px;font-weight:900;color:#8B5CF6;">88 days</div></div>
+        <div class="insight">💡 <b>Insight:</b> Senior roles (35+) take <b>29% longer</b> to fill than junior roles. Consider starting senior searches earlier.</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== TREND TAB ===== -->
+  <div id="tab-trend" style="display:none;">
+    <!-- Grouped bar chart (CSS) -->
+    <div class="card" style="margin-bottom:16px;">
+      <div class="card-title">Vacancies Opened vs Filled — Monthly</div>
+      <div style="display:flex;gap:16px;margin-bottom:14px;">
+        <span style="font-size:11px;color:#6B7280;display:flex;align-items:center;gap:6px;"><span style="width:14px;height:14px;border-radius:3px;background:#6366F1;display:inline-block;"></span><b style="color:#374151;">Opened</b></span>
+        <span style="font-size:11px;color:#6B7280;display:flex;align-items:center;gap:6px;"><span style="width:14px;height:14px;border-radius:3px;background:#10B981;display:inline-block;"></span><b style="color:#374151;">Filled</b></span>
+      </div>
+      <!-- Y-axis labels + bars -->
+      <div style="display:flex;gap:0;">
+        <!-- Y axis -->
+        <div style="display:flex;flex-direction:column;justify-content:space-between;align-items:flex-end;padding-right:8px;padding-bottom:28px;min-width:24px;">
+          <span style="font-size:10px;color:#9CA3AF;">2</span>
+          <span style="font-size:10px;color:#9CA3AF;">1</span>
+          <span style="font-size:10px;color:#9CA3AF;">0</span>
+        </div>
+        <!-- Chart area -->
+        <div style="flex:1;position:relative;">
+          <!-- Grid lines -->
+          <div style="position:absolute;top:0;left:0;right:0;bottom:28px;display:flex;flex-direction:column;justify-content:space-between;pointer-events:none;">
+            <div style="border-top:1px dashed #E5E7EB;"></div>
+            <div style="border-top:1px dashed #E5E7EB;"></div>
+            <div style="border-top:1px solid #D1D5DB;"></div>
+          </div>
+          <!-- Bars -->
+          <div id="trend-bars" style="display:flex;align-items:flex-end;gap:6px;height:180px;padding-bottom:28px;position:relative;z-index:1;"></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="grid-2">
+      <!-- Avg days trend -->
+      <div class="card">
+        <div class="card-title">Avg Days to Hire — Monthly Trend</div>
+        <div style="display:flex;flex-direction:column;gap:12px;" id="monthly-days"></div>
+        <div class="insight insight-green">💡 <b>Trend:</b> Hiring speed improved in Jan '26 (54d) but slowed in Feb '26 (86d). Review pipeline for bottlenecks.</div>
+      </div>
+
+      <!-- Summary table -->
+      <div class="card" style="padding:0;overflow:hidden;">
+        <div style="padding:14px 20px;border-bottom:1px solid #E5E7EB;font-size:11px;font-weight:800;color:#374151;text-transform:uppercase;letter-spacing:.06em;">Monthly Summary</div>
+        <table>
+          <thead><tr><th>Month</th><th>Opened</th><th>Filled</th><th>Avg Days</th></tr></thead>
+          <tbody id="monthly-tbody"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<script>
+// ── DATA ─────────────────────────────────────────────────────────────────────
+const positions = [
+  { id:1, title:"Product Manager", segment:"Marketing", grade:"33/34", portfolio:"Oncology", location:"Head Office", candidate:"Tooba Ahmed", stage:"Candidate Identified", openDate:"2026-01-10", closeDate:"2026-03-05", daysToHire:54 },
+  { id:2, title:"Product Manager", segment:"Marketing", grade:"33/34", portfolio:"Trade", location:"Head Office", candidate:null, stage:"Shortlisting", openDate:"2026-02-01", closeDate:null, daysToHire:null },
+  { id:3, title:"Product Manager", segment:"Marketing", grade:"33/34", portfolio:"Pain", location:"Head Office", candidate:null, stage:"Shortlisting", openDate:"2026-02-15", closeDate:null, daysToHire:null },
+  { id:4, title:"Group Product Manager", segment:"Marketing", grade:"35", portfolio:"Cardio", location:"Head Office", candidate:"Ammad Shafqat", stage:"Interview", openDate:"2026-01-20", closeDate:"2026-04-10", daysToHire:80 },
+  { id:5, title:"Group Product Manager", segment:"Marketing", grade:"35", portfolio:"Gastro", location:"Head Office", candidate:"Maira Khan", stage:"Interview", openDate:"2026-03-01", closeDate:null, daysToHire:null },
+  { id:6, title:"Business Head - CM", segment:"Commercial", grade:"36", portfolio:"Cardio", location:"Head Office", candidate:"Tariq Majeed", stage:"Interview", openDate:"2025-11-15", closeDate:"2026-02-20", daysToHire:97 },
+  { id:7, title:"National Sales Manager", segment:"Chronic Care", grade:"35TR", portfolio:"Mucain", location:"Karachi", candidate:null, stage:"Interview", openDate:"2025-12-01", closeDate:null, daysToHire:null },
+  { id:8, title:"Territory Manager", segment:"Sales", grade:"33/34", portfolio:"Oncology", location:"Lahore", candidate:"Ali Raza", stage:"Offer Extended", openDate:"2025-10-05", closeDate:"2025-12-20", daysToHire:76 },
+  { id:9, title:"Brand Manager", segment:"Marketing", grade:"33/34", portfolio:"Pain", location:"Head Office", candidate:"Sara Ahmed", stage:"Offer Extended", openDate:"2025-11-01", closeDate:"2026-01-15", daysToHire:75 },
+  { id:10, title:"Regional Sales Manager", segment:"Sales", grade:"35", portfolio:"Gastro", location:"Karachi", candidate:"Hassan Khan", stage:"Offer Extended", openDate:"2025-09-10", closeDate:"2025-12-05", daysToHire:86 },
+];
+
+const monthlyData = [
+  { month:"Sep '25", opened:2, filled:0, avgDays:null },
+  { month:"Oct '25", opened:1, filled:1, avgDays:76 },
+  { month:"Nov '25", opened:2, filled:0, avgDays:null },
+  { month:"Dec '25", opened:1, filled:2, avgDays:81 },
+  { month:"Jan '26", opened:2, filled:1, avgDays:54 },
+  { month:"Feb '26", opened:2, filled:2, avgDays:86 },
+  { month:"Mar '26", opened:2, filled:0, avgDays:null },
+  { month:"Apr '26", opened:0, filled:1, avgDays:80 },
+];
+
+const avgDaysData = [
+  { role:"Territory Mgr", days:76 },
+  { role:"Brand Manager", days:75 },
+  { role:"Product Manager", days:54 },
+  { role:"Group PM", days:80 },
+  { role:"Regional SM", days:86 },
+  { role:"Business Head", days:97 },
+];
+
+const stageColors = { "Shortlisting":"#F59E0B", "Candidate Identified":"#3B82F6", "Interview":"#8B5CF6", "Offer Extended":"#10B981" };
+
+// ── HELPERS ───────────────────────────────────────────────────────────────────
+function dayColor(d) { return d < 60 ? "#10B981" : d < 80 ? "#F59E0B" : "#EF4444"; }
+
+function stageBadge(stage) {
+  const c = stageColors[stage] || "#6B7280";
+  return `<span class="badge" style="background:${c}18;color:${c};border:1px solid ${c}33;">${stage}</span>`;
+}
+
+function daysOpen(p) {
+  if (p.closeDate) return p.daysToHire;
+  return Math.round((new Date() - new Date(p.openDate)) / 86400000);
+}
+
+// ── RENDER POSITIONS TABLE ────────────────────────────────────────────────────
+let currentGrade = "All";
+function renderTable(grade) {
+  currentGrade = grade;
+  const filtered = grade === "All" ? positions : positions.filter(p => p.grade === grade);
+  const tbody = document.getElementById("positions-tbody");
+  tbody.innerHTML = filtered.map(p => {
+    const d = daysOpen(p);
+    const dc = dayColor(d);
+    return `<tr>
+      <td style="font-weight:700;color:#111827;">${p.title}</td>
+      <td><span class="badge" style="background:#EDE9FE;color:#6D28D9;">${p.grade}</span></td>
+      <td style="color:#374151;">${p.portfolio}</td>
+      <td style="color:#374151;">${p.location}</td>
+      <td>${p.candidate ? `<span style="color:#10B981;font-weight:700;">${p.candidate}</span>` : `<span style="color:#EF4444;font-size:11px;">— Not yet</span>`}</td>
+      <td>${stageBadge(p.stage)}</td>
+      <td style="color:#6B7280;">${p.openDate}</td>
+      <td><span style="font-weight:800;color:${dc};">${d}d</span></td>
+    </tr>`;
+  }).join("");
+}
+
+function filterGrade(grade, btn) {
+  document.querySelectorAll(".grade-btn").forEach(b => b.classList.remove("active"));
+  btn.classList.add("active");
+  renderTable(grade);
+}
+
+// ── RENDER PORTFOLIO BARS ─────────────────────────────────────────────────────
+function renderPortfolio() {
+  const open = positions.filter(p => !p.closeDate);
+  const counts = {};
+  open.forEach(p => counts[p.portfolio] = (counts[p.portfolio]||0)+1);
+  const colors = ["#6366F1","#F59E0B","#10B981","#3B82F6","#EC4899","#EF4444"];
+  const max = Math.max(...Object.values(counts));
+  document.getElementById("portfolio-bars").innerHTML = Object.entries(counts).sort((a,b)=>b[1]-a[1]).map(([port,cnt],i)=>`
+    <div style="margin-bottom:10px;">
+      <div style="display:flex;justify-content:space-between;margin-bottom:3px;">
+        <span style="font-size:12px;font-weight:600;color:#374151;">${port}</span>
+        <span style="font-size:12px;font-weight:800;">${cnt}</span>
+      </div>
+      <div style="height:7px;background:#F3F4F6;border-radius:99px;">
+        <div style="width:${(cnt/max)*100}%;height:100%;background:${colors[i%colors.length]};border-radius:99px;"></div>
+      </div>
+    </div>`).join("");
+}
+
+// ── RENDER HIRING BARS ────────────────────────────────────────────────────────
+function renderHiringBars() {
+  const max = 110;
+  document.getElementById("hiring-bars").innerHTML = avgDaysData.map(({role,days})=>`
+    <div>
+      <div style="display:flex;justify-content:space-between;margin-bottom:5px;">
+        <span style="font-size:12px;font-weight:600;color:#374151;">${role}</span>
+      </div>
+      <div class="bar-wrap">
+        <div class="bar-track" style="flex:1;">
+          <div class="bar-fill" style="width:${(days/max)*100}%;background:${dayColor(days)};"></div>
+        </div>
+        <span style="font-size:12px;font-weight:800;color:${dayColor(days)};min-width:36px;text-align:right;">${days}d</span>
+      </div>
+    </div>`).join("");
+
+  document.getElementById("detail-bars").innerHTML = avgDaysData.map(({role,days})=>`
+    <div>
+      <div style="font-size:12px;font-weight:600;color:#374151;margin-bottom:5px;">${role}</div>
+      <div class="bar-wrap">
+        <div class="bar-track" style="flex:1;">
+          <div class="bar-fill" style="width:${(days/max)*100}%;background:${dayColor(days)};"></div>
+        </div>
+        <span style="font-size:12px;font-weight:800;color:${dayColor(days)};min-width:36px;text-align:right;">${days}d</span>
+      </div>
+    </div>`).join("");
+}
+
+// ── RENDER TREND BARS ─────────────────────────────────────────────────────────
+function renderTrend() {
+  const maxVal = 2;
+  const chartH = 152; // px for 100% (value=2)
+  document.getElementById("trend-bars").innerHTML = monthlyData.map(m=>{
+    const oh = m.opened ? Math.max(Math.round((m.opened/maxVal)*chartH), 12) : 0;
+    const fh = m.filled  ? Math.max(Math.round((m.filled /maxVal)*chartH), 12) : 0;
+    return `
+    <div style="display:flex;flex-direction:column;align-items:center;flex:1;min-width:52px;">
+      <div style="display:flex;align-items:flex-end;gap:4px;height:${chartH}px;">
+        <div style="position:relative;display:flex;flex-direction:column;align-items:center;">
+          ${m.opened ? `<span style="font-size:10px;font-weight:800;color:#6366F1;margin-bottom:2px;">${m.opened}</span>` : ''}
+          <div style="width:22px;height:${oh}px;background:#6366F1;border-radius:5px 5px 0 0;"></div>
+        </div>
+        <div style="position:relative;display:flex;flex-direction:column;align-items:center;">
+          ${m.filled ? `<span style="font-size:10px;font-weight:800;color:#10B981;margin-bottom:2px;">${m.filled}</span>` : ''}
+          <div style="width:22px;height:${fh}px;background:#10B981;border-radius:5px 5px 0 0;${!m.filled?'opacity:0;':''}"></div>
+        </div>
+      </div>
+      <span style="font-size:9px;color:#6B7280;font-weight:600;text-align:center;white-space:nowrap;margin-top:6px;">${m.month}</span>
+    </div>`}).join("");
+
+  document.getElementById("monthly-days").innerHTML = monthlyData.filter(m=>m.avgDays).map(m=>`
+    <div>
+      <div style="display:flex;justify-content:space-between;margin-bottom:3px;">
+        <span style="font-size:12px;font-weight:600;color:#374151;">${m.month}</span>
+        <span style="font-size:12px;font-weight:800;color:${dayColor(m.avgDays)};">${m.avgDays}d</span>
+      </div>
+      <div class="bar-track"><div class="bar-fill" style="width:${(m.avgDays/110)*100}%;background:${dayColor(m.avgDays)};"></div></div>
+    </div>`).join("");
+
+  document.getElementById("monthly-tbody").innerHTML = monthlyData.map((m,i)=>`
+    <tr style="background:${i%2===0?"#fff":"#FAFAFA"};">
+      <td style="font-weight:700;color:#111827;">${m.month}</td>
+      <td><span style="color:#6366F1;font-weight:800;">${m.opened}</span></td>
+      <td><span style="color:#10B981;font-weight:800;">${m.filled}</span></td>
+      <td>${m.avgDays ? `<span style="font-weight:800;color:${dayColor(m.avgDays)};">${m.avgDays}d</span>` : `<span style="color:#9CA3AF;font-size:11px;">—</span>`}</td>
+    </tr>`).join("");
+}
+
+// ── TAB SWITCHING ─────────────────────────────────────────────────────────────
+function switchTab(tab, btn) {
+  ["overview","hiring","trend"].forEach(t => {
+    document.getElementById("tab-"+t).style.display = t===tab ? "block" : "none";
+  });
+  document.querySelectorAll(".tab-btn").forEach(b => b.classList.remove("active"));
+  btn.classList.add("active");
+}
+
+// ── INIT ──────────────────────────────────────────────────────────────────────
+renderTable("All");
+renderPortfolio();
+renderHiringBars();
+renderTrend();
+</script>
+</body>
+</html>
